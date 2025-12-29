@@ -58,7 +58,7 @@ Reference No: ${data.referenceNumber || 'N/A'}
     // Note: The ?text= parameter is not consistently supported across all devices/platforms for m.me links,
     // but we include it as a best-effort attempt. The clipboard copy serves as a reliable fallback.
     const encodedMessage = encodeURIComponent(message);
-    window.open(`https://m.me/JRGI.jr?text=${encodedMessage}`, '_blank');
+    window.open(`https://m.me/WebNegosyoOfficial?text=${encodedMessage}`, '_blank');
 
     // Reset or reload
     // window.location.reload();
