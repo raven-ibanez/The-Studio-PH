@@ -74,4 +74,5 @@ export interface SiteSettings {
   site_description: string;
   currency: string;
   currency_code: string;
+  gcash_qr_image: string;
 }
