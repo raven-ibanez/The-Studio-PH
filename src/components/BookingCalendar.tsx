@@ -1,16 +1,13 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import { format, isSameDay, addDays } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import { format, isSameDay } from 'date-fns';
 // import { supabase } from '../lib/supabase'; // Will be uncommented once lib is ready or passed as prop
 
-interface BlockedSlot {
-  date: Date;
-  start_time: string | null;
-  end_time: string | null;
-}
+import { useBookings } from '../hooks/useBookings';
+import { Booking } from '../types';
 
 interface BookingCalendarProps {
   onDateSelect: (date: Date) => void;
@@ -19,31 +16,75 @@ interface BookingCalendarProps {
   minDuration: number;
 }
 
-const BookingCalendar: React.FC<BookingCalendarProps> = ({ 
-  onDateSelect, 
-  onTimeSelect, 
+const BookingCalendar: React.FC<BookingCalendarProps> = ({
+  onDateSelect,
+  onTimeSelect,
   selectedDate,
-  minDuration 
+  minDuration
 }) => {
   const [startTime, setStartTime] = useState<string>('09:00');
   const [duration, setDuration] = useState<number>(minDuration);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
-  
-  // Mock data for now - will be replaced with Supabase fetch
-  const blockedDates: Date[] = []; 
-  
+
+  const { bookings } = useBookings();
+
+  // Derived state for calendar modifiers
+  const bookedDates = bookings
+    .filter(b => b.status === 'confirmed')
+    .map(b => new Date(b.booking_date));
+
   useEffect(() => {
+    if (!selectedDate) {
+      setAvailableTimes([]);
+      return;
+    }
+
+    // Filter bookings for the selected date
+    const dayBookings = bookings.filter(b =>
+      b.status === 'confirmed' &&
+      isSameDay(new Date(b.booking_date), selectedDate)
+    );
+
     // Generate times from 9 AM to 9 PM
     const times = [];
     for (let i = 9; i <= 21; i++) {
-        times.push(`${i < 10 ? '0' : ''}${i}:00`);
-        times.push(`${i < 10 ? '0' : ''}${i}:30`);
+      const hour = i;
+      const minute = 0;
+      const timeString = `${hour < 10 ? '0' : ''}${hour}:00`;
+
+      // Check availability
+      if (isTimeSlotAvailable(timeString, dayBookings)) {
+        times.push(timeString);
+      }
+
+      if (i !== 21) {
+        const timeStringHalf = `${hour < 10 ? '0' : ''}${hour}:30`;
+        if (isTimeSlotAvailable(timeStringHalf, dayBookings)) {
+          times.push(timeStringHalf);
+        }
+      }
     }
     setAvailableTimes(times);
-  }, [selectedDate]);
+  }, [selectedDate, bookings]);
+
+  const isTimeSlotAvailable = (time: string, dayBookings: Booking[]) => {
+    // Convert time to minutes for easier comparison
+    const [h, m] = time.split(':').map(Number);
+    const timeInMinutes = h * 60 + m;
+
+    // Check if this time falls within any booking
+    return !dayBookings.some(booking => {
+      const [bh, bm] = booking.start_time.split(':').map(Number);
+      const bookingStart = bh * 60 + bm;
+      const bookingEnd = bookingStart + (booking.duration_hours * 60);
+
+      // If the slot start time is >= booking start AND < booking end, it's occupied
+      return timeInMinutes >= bookingStart && timeInMinutes < bookingEnd;
+    });
+  };
 
   useEffect(() => {
-      onTimeSelect(startTime, duration);
+    onTimeSelect(startTime, duration);
   }, [startTime, duration, onTimeSelect]);
 
 
@@ -71,7 +112,13 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
           mode="single"
           selected={selectedDate}
           onSelect={(date) => date && onDateSelect(date)}
-          disabled={[{ before: new Date() }, ...blockedDates]}
+          disabled={[{ before: new Date() }]}
+          modifiers={{
+            hasBooking: bookedDates
+          }}
+          modifiersStyles={{
+            hasBooking: { fontWeight: 'bold', textDecoration: 'underline' }
+          }}
           modifiersClassNames={{
             selected: 'my-selected',
           }}
@@ -81,41 +128,50 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
       <div className="flex-1 space-y-6">
         <div>
           <h3 className="text-lg font-medium mb-4">Select Time & Duration</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
-              <select 
-                value={startTime} 
-                onChange={(e) => setStartTime(e.target.value)}
-                className="w-full border-gray-300 rounded-md shadow-sm p-2 bg-white border"
-              >
-                {availableTimes.map(time => (
-                  <option key={time} value={time}>{time}</option>
-                ))}
-              </select>
+          {selectedDate ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+                <select
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full border-gray-300 rounded-md shadow-sm p-2 bg-white border"
+                >
+                  {availableTimes.length > 0 ? (
+                    availableTimes.map(time => (
+                      <option key={time} value={time}>{time}</option>
+                    ))
+                  ) : (
+                    <option disabled>No available times</option>
+                  )}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Duration (Hours)</label>
+                <select
+                  value={duration}
+                  onChange={(e) => setDuration(Number(e.target.value))}
+                  className="w-full border-gray-300 rounded-md shadow-sm p-2 bg-white border"
+                >
+                  {[2, 3, 4, 5, 6, 7, 8].map(hrs => (
+                    <option key={hrs} value={hrs}>{hrs} Hours</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Duration (Hours)</label>
-              <select 
-                value={duration} 
-                onChange={(e) => setDuration(Number(e.target.value))}
-                className="w-full border-gray-300 rounded-md shadow-sm p-2 bg-white border"
-              >
-                {[2, 3, 4, 5, 6, 7, 8].map(hrs => (
-                  <option key={hrs} value={hrs}>{hrs} Hours</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          ) : (
+            <p className="text-gray-500 italic">Please select a date first.</p>
+          )}
         </div>
 
         <div className="bg-gray-50 p-4 rounded-md">
-            <h4 className="font-medium text-gray-900 mb-2">Summary</h4>
-            <div className="space-y-1 text-sm text-gray-600">
-                <p>Date: {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'No date selected'}</p>
-                <p>Time: {startTime}</p>
-                <p>Duration: {duration} hours</p>
-            </div>
+          <h4 className="font-medium text-gray-900 mb-2">Summary</h4>
+          <div className="space-y-1 text-sm text-gray-600">
+            <p>Date: {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'No date selected'}</p>
+            <p>Time: {availableTimes.includes(startTime) ? startTime : 'Selected time unavailable'}</p>
+            <p>Duration: {duration} hours</p>
+            {/* Warning if selected duration overlaps next booking could go here */}
+          </div>
         </div>
       </div>
     </div>

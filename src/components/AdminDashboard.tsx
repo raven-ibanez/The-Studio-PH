@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Lock, Settings, LogOut, CheckCircle, XCircle } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
@@ -6,6 +5,7 @@ import 'react-day-picker/dist/style.css';
 import { format } from 'date-fns';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { useImageUpload } from '../hooks/useImageUpload';
+import { useBookings } from '../hooks/useBookings';
 
 const SettingsTab = () => {
   const { siteSettings, updateSiteSettings, loading } = useSiteSettings();
@@ -182,14 +182,53 @@ const AdminDashboard: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-
-  // Mock Data
-  const [bookings, setBookings] = useState([
-    { id: '1', date: new Date(), time: '10:00', duration: 2, name: 'John Doe', status: 'confirmed', total: 2000 },
-    { id: '2', date: new Date(), time: '14:00', duration: 3, name: 'Jane Smith', status: 'pending', total: 3000 }
-  ]);
-
+  // Data Hooks
+  const { bookings, loading: bookingsLoading, addBooking, updateBookingStatus, deleteBooking } = useBookings();
   const [blockedDates, setBlockedDates] = useState<Date[]>([]);
+
+  // Manual Booking Form State
+  const [showAddBooking, setShowAddBooking] = useState(false);
+  const [newBooking, setNewBooking] = useState({
+    customer_name: '',
+    customer_email: '',
+    booking_date: new Date().toISOString().split('T')[0],
+    start_time: '09:00',
+    duration_hours: 2,
+    total_price: 2000,
+    status: 'confirmed' as const,
+    notes: 'Manual Entry'
+  });
+
+  // Derived state for calendar modifiers
+  const bookedDates = bookings
+    .filter(b => b.status === 'confirmed')
+    .map(b => new Date(b.booking_date));
+
+  const handleAddBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await addBooking({
+        ...newBooking,
+        customer_email: newBooking.customer_email || 'manual@admin.com',
+        payment_status: 'paid'
+      });
+      setShowAddBooking(false);
+      alert('Booking added successfully!');
+      // Reset form
+      setNewBooking({
+        customer_name: '',
+        customer_email: '',
+        booking_date: new Date().toISOString().split('T')[0],
+        start_time: '09:00',
+        duration_hours: 2,
+        total_price: 2000,
+        status: 'confirmed',
+        notes: 'Manual Entry'
+      });
+    } catch (error) {
+      alert('Failed to add booking');
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -281,7 +320,73 @@ const AdminDashboard: React.FC = () => {
       <div className="flex-1 p-8 overflow-y-auto">
         {activeTab === 'bookings' && (
           <div>
-            <h2 className="text-2xl font-bold mb-6">Bookings Dashboard</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Bookings Dashboard</h2>
+              <button
+                onClick={() => setShowAddBooking(!showAddBooking)}
+                className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800"
+              >
+                {showAddBooking ? 'Cancel' : 'Add Confirmed Booking'}
+              </button>
+            </div>
+
+            {showAddBooking && (
+              <div className="bg-white p-6 rounded-lg shadow-sm mb-8 border border-gray-200 animate-fade-in">
+                <h3 className="font-semibold mb-4">New Reservation</h3>
+                <form onSubmit={handleAddBooking} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Customer Name</label>
+                    <input
+                      required
+                      type="text"
+                      className="w-full border rounded-md p-2"
+                      value={newBooking.customer_name}
+                      onChange={e => setNewBooking({ ...newBooking, customer_name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Date</label>
+                    <input
+                      required
+                      type="date"
+                      className="w-full border rounded-md p-2"
+                      value={newBooking.booking_date}
+                      onChange={e => setNewBooking({ ...newBooking, booking_date: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Time</label>
+                    <select
+                      className="w-full border rounded-md p-2"
+                      value={newBooking.start_time}
+                      onChange={e => setNewBooking({ ...newBooking, start_time: e.target.value })}
+                    >
+                      {[...Array(13)].map((_, i) => {
+                        const h = i + 9;
+                        const t = `${h < 10 ? '0' : ''}${h}:00`;
+                        return <option key={t} value={t}>{t}</option>;
+                      })}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Duration (Hours)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      className="w-full border rounded-md p-2"
+                      value={newBooking.duration_hours}
+                      onChange={e => setNewBooking({ ...newBooking, duration_hours: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 w-full md:w-auto">
+                      Save Reservation
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Calendar View */}
               <div className="bg-white p-6 rounded-lg shadow-sm lg:col-span-1">
@@ -290,7 +395,7 @@ const AdminDashboard: React.FC = () => {
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   modifiers={{
-                    hasBooking: bookings.map(b => b.date),
+                    hasBooking: bookedDates,
                     blocked: blockedDates
                   }}
                   modifiersStyles={{
@@ -305,31 +410,39 @@ const AdminDashboard: React.FC = () => {
                 <h3 className="font-semibold mb-4">
                   Bookings for {selectedDate ? format(selectedDate, 'MMM d, yyyy') : 'All Dates'}
                 </h3>
-                {bookings.filter(b => !selectedDate || isSameDay(new Date(b.date), selectedDate)).length === 0 ? (
+                {bookings.filter(b => !selectedDate || isSameDay(new Date(b.booking_date), selectedDate)).length === 0 ? (
                   <p className="text-gray-500">No bookings for this date.</p>
                 ) : (
                   <div className="space-y-4">
                     {bookings
-                      .filter(b => !selectedDate || isSameDay(new Date(b.date), selectedDate))
+                      .filter(b => !selectedDate || isSameDay(new Date(b.booking_date), selectedDate))
                       .map(booking => (
                         <div key={booking.id} className="border p-4 rounded-lg flex justify-between items-center">
                           <div>
-                            <p className="font-bold">{booking.time} - {booking.duration} hours</p>
-                            <p className="text-sm text-gray-600">{booking.name}</p>
-                            <p className="text-sm font-medium">₱{booking.total.toLocaleString()}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold">{booking.start_time.slice(0, 5)} - {booking.duration_hours} hrs</p>
+                              <span className="text-xs text-gray-500">({booking.booking_date})</span>
+                            </div>
+                            <p className="text-sm text-gray-600">{booking.customer_name}</p>
+                            <p className="text-sm font-medium">₱{booking.total_price.toLocaleString()}</p>
                           </div>
                           <div className="flex gap-2">
                             {booking.status === 'pending' && (
                               <>
-                                <button className="p-2 text-green-600 hover:bg-green-50 rounded"><CheckCircle className="w-5 h-5" /></button>
-                                <button className="p-2 text-red-600 hover:bg-red-50 rounded"><XCircle className="w-5 h-5" /></button>
+                                <button onClick={() => updateBookingStatus(booking.id, 'confirmed')} className="p-2 text-green-600 hover:bg-green-50 rounded"><CheckCircle className="w-5 h-5" /></button>
+                                <button onClick={() => updateBookingStatus(booking.id, 'cancelled')} className="p-2 text-red-600 hover:bg-red-50 rounded"><XCircle className="w-5 h-5" /></button>
                               </>
                             )}
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                              booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
-                              }`}>
-                              {booking.status}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+                                }`}>
+                                {booking.status}
+                              </span>
+                              <button onClick={() => deleteBooking(booking.id)} className="text-gray-400 hover:text-red-500 ml-2">
+                                <LogOut className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}

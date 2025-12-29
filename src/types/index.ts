@@ -76,3 +76,27 @@ export interface SiteSettings {
   currency_code: string;
   gcash_qr_image: string;
 }
+
+export interface Booking {
+  id: string;
+  created_at: string;
+  customer_name: string;
+  customer_email: string;
+  booking_date: string; // ISO date string YYYY-MM-DD
+  start_time: string; // HH:mm:ss
+  duration_hours: number;
+  total_price: number;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  notes?: string;
+  payment_status: 'unpaid' | 'paid';
+  reference_number?: string;
+  payment_method?: string;
+}
+
+export interface BlockedSlot {
+  id: string;
+  date: string; // ISO date string
+  start_time?: string;
+  end_time?: string;
+  reason?: string;
+}
