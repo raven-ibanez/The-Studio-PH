@@ -51,7 +51,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-xl font-semibold mb-6">Complete Your Reservation</h3>
 
             <div className="mb-6 bg-red-50 border border-red-100 p-4 rounded-md">
@@ -112,8 +112,8 @@ const BookingForm: React.FC<BookingFormProps> = ({
                             type="button"
                             onClick={() => setPaymentMethod('gcash')}
                             className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${paymentMethod === 'gcash'
-                                    ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
-                                    : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             GCash

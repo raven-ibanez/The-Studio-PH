@@ -11,6 +11,7 @@ const SettingsTab = () => {
   const { siteSettings, updateSiteSettings, loading } = useSiteSettings();
   const { uploadImage, uploading, uploadProgress } = useImageUpload();
   const [formData, setFormData] = useState({
+    site_logo: '',
     gcash_qr_image: '',
     site_name: ''
   });
@@ -18,6 +19,7 @@ const SettingsTab = () => {
   useEffect(() => {
     if (siteSettings) {
       setFormData({
+        site_logo: siteSettings.site_logo || '',
         gcash_qr_image: siteSettings.gcash_qr_image || '',
         site_name: siteSettings.site_name || ''
       });
@@ -33,11 +35,11 @@ const SettingsTab = () => {
     }
   };
 
-  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>, field: 'site_logo' | 'gcash_qr_image') => {
     if (e.target.files && e.target.files[0]) {
       try {
         const url = await uploadImage(e.target.files[0]);
-        setFormData(prev => ({ ...prev, gcash_qr_image: url }));
+        setFormData(prev => ({ ...prev, [field]: url }));
       } catch (error) {
         alert('Failed to upload image');
       }
@@ -50,6 +52,46 @@ const SettingsTab = () => {
     <div>
       <h2 className="text-2xl font-bold mb-6">Content Settings</h2>
       <div className="bg-white p-6 rounded-lg shadow-sm max-w-2xl space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold mb-4">General Settings</h3>
+          <div className="mb-6 border-b pb-6">
+            <label className="block text-sm font-medium mb-1">Site Logo</label>
+            <div className="mb-4">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageSelect(e, 'site_logo')}
+                className="block w-full text-sm text-slate-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-full file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-violet-50 file:text-violet-700
+                  hover:file:bg-violet-100
+                "
+                disabled={uploading}
+              />
+            </div>
+            {formData.site_logo && (
+              <div className="mt-2 mb-4">
+                <p className="text-sm font-medium mb-2">Preview:</p>
+                <img
+                  src={formData.site_logo}
+                  alt="Logo Preview"
+                  className="h-16 object-contain border rounded bg-gray-50"
+                />
+              </div>
+            )}
+            <label className="block text-xs font-medium text-gray-500 mb-1">Or enter Logo URL</label>
+            <input
+              type="text"
+              className="w-full border rounded-md p-2"
+              placeholder="https://..."
+              value={formData.site_logo}
+              onChange={(e) => setFormData({ ...formData, site_logo: e.target.value })}
+            />
+          </div>
+        </div>
+
         <div>
           <label className="block text-sm font-medium mb-1">Payment Policy Text</label>
           <textarea
@@ -78,7 +120,7 @@ const SettingsTab = () => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleImageSelect}
+                onChange={(e) => handleImageSelect(e, 'gcash_qr_image')}
                 className="block w-full text-sm text-slate-500
                   file:mr-4 file:py-2 file:px-4
                   file:rounded-full file:border-0
@@ -138,6 +180,7 @@ const AdminDashboard: React.FC = () => {
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState<'bookings' | 'blocked' | 'settings'>('bookings');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 
   // Mock Data
@@ -195,24 +238,35 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
+      {/* Mobile Sidebar Toggle */}
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="md:hidden fixed bottom-4 right-4 z-50 bg-black text-white p-3 rounded-full shadow-lg"
+      >
+        {isSidebarOpen ? <XCircle /> : <CalendarIcon />}
+      </button>
+
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 p-6 flex flex-col">
+      <div className={`
+        fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 p-6 flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
         <h1 className="text-xl font-bold mb-8">Studio Admin</h1>
         <nav className="flex-1 space-y-2">
           <button
-            onClick={() => setActiveTab('bookings')}
+            onClick={() => { setActiveTab('bookings'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${activeTab === 'bookings' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-100'}`}
           >
             <CalendarIcon className="w-5 h-5" /> Both Bookings & Calendar
           </button>
           <button
-            onClick={() => setActiveTab('blocked')}
+            onClick={() => { setActiveTab('blocked'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${activeTab === 'blocked' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-100'}`}
           >
             <Lock className="w-5 h-5" /> Block Dates
           </button>
           <button
-            onClick={() => setActiveTab('settings')}
+            onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${activeTab === 'settings' ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-100'}`}
           >
             <Settings className="w-5 h-5" /> Content Settings
