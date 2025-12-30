@@ -26,7 +26,9 @@ export const useSiteSettings = () => {
         site_description: data.find(s => s.id === 'site_description')?.value || '',
         currency: data.find(s => s.id === 'currency')?.value || 'PHP',
         currency_code: data.find(s => s.id === 'currency_code')?.value || 'PHP',
-        gcash_qr_image: data.find(s => s.id === 'gcash_qr_image')?.value || ''
+        gcash_qr_image: data.find(s => s.id === 'gcash_qr_image')?.value || '',
+        opening_time: data.find(s => s.id === 'opening_time')?.value || '09:00',
+        closing_time: data.find(s => s.id === 'closing_time')?.value || '21:00'
       };
 
       setSiteSettings(settings);

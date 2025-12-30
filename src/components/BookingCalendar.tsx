@@ -7,7 +7,9 @@ import { format, isSameDay } from 'date-fns';
 // import { supabase } from '../lib/supabase'; // Will be uncommented once lib is ready or passed as prop
 
 import { useBookings } from '../hooks/useBookings';
+import { useSiteSettings } from '../hooks/useSiteSettings';
 import { Booking } from '../types';
+import { formatTo12Hour } from '../utils/time';
 
 interface BookingCalendarProps {
   onDateSelect: (date: Date) => void;
@@ -22,9 +24,17 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
   selectedDate,
   minDuration
 }) => {
+  const { siteSettings } = useSiteSettings();
   const [startTime, setStartTime] = useState<string>('09:00');
   const [duration, setDuration] = useState<number>(minDuration);
-  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [timeSlots, setTimeSlots] = useState<{ time: string; available: boolean }[]>([]);
+
+  // Update startTime when siteSettings loads
+  useEffect(() => {
+    if (siteSettings?.opening_time) {
+      setStartTime(siteSettings.opening_time);
+    }
+  }, [siteSettings]);
 
   const { bookings } = useBookings();
 
@@ -35,7 +45,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
   useEffect(() => {
     if (!selectedDate) {
-      setAvailableTimes([]);
+      setTimeSlots([]);
       return;
     }
 
@@ -45,27 +55,32 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
       isSameDay(new Date(b.booking_date), selectedDate)
     );
 
-    // Generate times from 9 AM to 9 PM
-    const times = [];
-    for (let i = 9; i <= 21; i++) {
+    // Generate times based on settings
+    const startHour = siteSettings ? parseInt(siteSettings.opening_time.split(':')[0]) : 9;
+    const endHour = siteSettings ? parseInt(siteSettings.closing_time.split(':')[0]) : 21;
+
+    const slots = [];
+    for (let i = startHour; i <= endHour; i++) {
       const hour = i;
-      const minute = 0;
+
       const timeString = `${hour < 10 ? '0' : ''}${hour}:00`;
 
       // Check availability
-      if (isTimeSlotAvailable(timeString, dayBookings)) {
-        times.push(timeString);
-      }
+      slots.push({
+        time: timeString,
+        available: isTimeSlotAvailable(timeString, dayBookings)
+      });
 
-      if (i !== 21) {
+      if (i !== endHour) {
         const timeStringHalf = `${hour < 10 ? '0' : ''}${hour}:30`;
-        if (isTimeSlotAvailable(timeStringHalf, dayBookings)) {
-          times.push(timeStringHalf);
-        }
+        slots.push({
+          time: timeStringHalf,
+          available: isTimeSlotAvailable(timeStringHalf, dayBookings)
+        });
       }
     }
-    setAvailableTimes(times);
-  }, [selectedDate, bookings]);
+    setTimeSlots(slots);
+  }, [selectedDate, bookings, siteSettings]);
 
   const isTimeSlotAvailable = (time: string, dayBookings: Booking[]) => {
     // Convert time to minutes for easier comparison
@@ -92,22 +107,6 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     <div className="flex flex-col md:flex-row gap-8 bg-white p-6 rounded-lg shadow-sm">
       <div className="flex-1">
         <h3 className="text-lg font-medium mb-4">Select Date</h3>
-        <style>{`
-          .rdp-day_selected:not([disabled]) { 
-            font-weight: bold; 
-            border: 2px solid #D4AF37;
-            background-color: #FFF8E7;
-            color: #D4AF37;
-          }
-          .rdp-day_selected:hover:not([disabled]) { 
-            border-color: #D4AF37;
-            background-color: #FFF8E7;
-            color: #D4AF37;
-          }
-          .rdp-button:hover:not([disabled]):not(.rdp-day_selected) {
-            background-color: #f7f7f7;
-          }
-        `}</style>
         <DayPicker
           mode="single"
           selected={selectedDate}
@@ -120,7 +119,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
             hasBooking: { fontWeight: 'bold', textDecoration: 'underline' }
           }}
           modifiersClassNames={{
-            selected: 'my-selected',
+            selected: '!bg-[#D4AF37] !text-white hover:!bg-[#D4AF37] hover:!text-white',
           }}
         />
       </div>
@@ -137,9 +136,11 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
                   onChange={(e) => setStartTime(e.target.value)}
                   className="w-full border-gray-300 rounded-md shadow-sm p-2 bg-white border"
                 >
-                  {availableTimes.length > 0 ? (
-                    availableTimes.map(time => (
-                      <option key={time} value={time}>{time}</option>
+                  {timeSlots.length > 0 ? (
+                    timeSlots.map(slot => (
+                      <option key={slot.time} value={slot.time} disabled={!slot.available}>
+                        {formatTo12Hour(slot.time)}{!slot.available ? ' (Booked)' : ''}
+                      </option>
                     ))
                   ) : (
                     <option disabled>No available times</option>
@@ -168,7 +169,13 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
           <h4 className="font-medium text-gray-900 mb-2">Summary</h4>
           <div className="space-y-1 text-sm text-gray-600">
             <p>Date: {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'No date selected'}</p>
-            <p>Time: {availableTimes.includes(startTime) ? startTime : 'Selected time unavailable'}</p>
+            <p>
+              Time: {
+                timeSlots.find(s => s.time === startTime)?.available
+                  ? formatTo12Hour(startTime)
+                  : <span className="text-red-500 font-medium">Selected time unavailable</span>
+              }
+            </p>
             <p>Duration: {duration} hours</p>
             {/* Warning if selected duration overlaps next booking could go here */}
           </div>

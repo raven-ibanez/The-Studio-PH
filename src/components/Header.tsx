@@ -13,11 +13,7 @@ const Header: React.FC<HeaderProps> = () => {
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
-  const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'Book Now', path: '/book' },
-    { name: 'Admin', path: '/admin' },
-  ];
+  const navLinks: { name: string; path: string }[] = [];
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-ramen-sesame shadow-sm">
@@ -63,14 +59,16 @@ const Header: React.FC<HeaderProps> = () => {
           </nav>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <button
-              onClick={toggleMenu}
-              className="p-2 text-gray-600 hover:text-black focus:outline-none"
-            >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
+          {navLinks.length > 0 && (
+            <div className="md:hidden">
+              <button
+                onClick={toggleMenu}
+                className="p-2 text-gray-600 hover:text-black focus:outline-none"
+              >
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

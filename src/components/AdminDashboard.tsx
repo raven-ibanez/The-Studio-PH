@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { useImageUpload } from '../hooks/useImageUpload';
 import { useBookings } from '../hooks/useBookings';
+import { formatTo12Hour } from '../utils/time';
 
 const SettingsTab = () => {
   const { siteSettings, updateSiteSettings, loading } = useSiteSettings();
@@ -13,7 +14,9 @@ const SettingsTab = () => {
   const [formData, setFormData] = useState({
     site_logo: '',
     gcash_qr_image: '',
-    site_name: ''
+    site_name: '',
+    opening_time: '09:00',
+    closing_time: '21:00'
   });
 
   useEffect(() => {
@@ -21,7 +24,9 @@ const SettingsTab = () => {
       setFormData({
         site_logo: siteSettings.site_logo || '',
         gcash_qr_image: siteSettings.gcash_qr_image || '',
-        site_name: siteSettings.site_name || ''
+        site_name: siteSettings.site_name || '',
+        opening_time: siteSettings.opening_time || '09:00',
+        closing_time: siteSettings.closing_time || '21:00'
       });
     }
   }, [siteSettings]);
@@ -108,6 +113,32 @@ const SettingsTab = () => {
             <label className="block text-sm font-medium mb-1">Min Hours</label>
             <input type="number" className="w-full border rounded-md p-2" defaultValue="2" />
           </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Opening Time</label>
+            <select
+              className="w-full border rounded-md p-2"
+              value={formData.opening_time}
+              onChange={(e) => setFormData({ ...formData, opening_time: e.target.value })}
+            >
+              {[...Array(24)].map((_, i) => {
+                const t = `${i < 10 ? '0' : ''}${i}:00`;
+                return <option key={t} value={t}>{formatTo12Hour(t)}</option>;
+              })}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Closing Time</label>
+            <select
+              className="w-full border rounded-md p-2"
+              value={formData.closing_time}
+              onChange={(e) => setFormData({ ...formData, closing_time: e.target.value })}
+            >
+              {[...Array(24)].map((_, i) => {
+                const t = `${i < 10 ? '0' : ''}${i}:00`;
+                return <option key={t} value={t}>{formatTo12Hour(t)}</option>;
+              })}
+            </select>
+          </div>
         </div>
 
         <div className="border-t pt-6 mt-6">
@@ -183,7 +214,7 @@ const AdminDashboard: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Data Hooks
-  const { bookings, loading: bookingsLoading, addBooking, updateBookingStatus, deleteBooking } = useBookings();
+  const { bookings, addBooking, updateBookingStatus, deleteBooking } = useBookings();
   const [blockedDates, setBlockedDates] = useState<Date[]>([]);
 
   // Manual Booking Form State
@@ -245,15 +276,7 @@ const AdminDashboard: React.FC = () => {
     localStorage.removeItem('beracah_admin_auth');
   };
 
-  const toggleBlockDate = (date: Date) => {
-    // Check if date is already blocked
-    const isBlocked = blockedDates.some(d => d.toDateString() === date.toDateString());
-    if (isBlocked) {
-      setBlockedDates(blockedDates.filter(d => d.toDateString() !== date.toDateString()));
-    } else {
-      setBlockedDates([...blockedDates, date]);
-    }
-  };
+
 
   if (!isAuthenticated) {
     return (
@@ -364,7 +387,7 @@ const AdminDashboard: React.FC = () => {
                       {[...Array(13)].map((_, i) => {
                         const h = i + 9;
                         const t = `${h < 10 ? '0' : ''}${h}:00`;
-                        return <option key={t} value={t}>{t}</option>;
+                        return <option key={t} value={t}>{formatTo12Hour(t)}</option>;
                       })}
                     </select>
                   </div>
@@ -420,7 +443,7 @@ const AdminDashboard: React.FC = () => {
                         <div key={booking.id} className="border p-4 rounded-lg flex justify-between items-center">
                           <div>
                             <div className="flex items-center gap-2">
-                              <p className="font-bold">{booking.start_time.slice(0, 5)} - {booking.duration_hours} hrs</p>
+                              <p className="font-bold">{formatTo12Hour(booking.start_time.slice(0, 5))} - {booking.duration_hours} hrs</p>
                               <span className="text-xs text-gray-500">({booking.booking_date})</span>
                             </div>
                             <p className="text-sm text-gray-600">{booking.customer_name}</p>

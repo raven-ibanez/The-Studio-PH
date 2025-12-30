@@ -75,6 +75,8 @@ export interface SiteSettings {
   currency: string;
   currency_code: string;
   gcash_qr_image: string;
+  opening_time: string;
+  closing_time: string;
 }
 
 export interface Booking {

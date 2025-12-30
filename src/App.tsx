@@ -5,6 +5,7 @@ import AdminDashboard from './components/AdminDashboard';
 import BookingCalendar from './components/BookingCalendar';
 import BookingForm from './components/BookingForm';
 import { MessageCircle } from 'lucide-react';
+import { formatTo12Hour } from './utils/time';
 
 function BookingPage() {
   const [step, setStep] = useState<'calendar' | 'details'>('calendar');
@@ -31,7 +32,7 @@ function BookingPage() {
 New Booking Request:
 Name: ${data.name}
 Date: ${selectedDate?.toLocaleDateString()}
-Time: ${bookingTime.start} (${bookingTime.duration} hours)
+Time: ${formatTo12Hour(bookingTime.start)} (${bookingTime.duration} hours)
 Phone: ${data.phone}
 Email: ${data.email}
 Notes: ${data.notes || 'None'}
