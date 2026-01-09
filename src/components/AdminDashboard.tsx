@@ -227,6 +227,7 @@ const AdminDashboard: React.FC = () => {
     duration_hours: 2,
     total_price: 2000,
     status: 'confirmed' as const,
+    reservation_type: 'walk-in' as ('online' | 'walk-in'),
     notes: 'Manual Entry'
   });
 
@@ -254,6 +255,7 @@ const AdminDashboard: React.FC = () => {
         duration_hours: 2,
         total_price: 2000,
         status: 'confirmed',
+        reservation_type: 'walk-in',
         notes: 'Manual Entry'
       });
     } catch (error) {
@@ -401,6 +403,20 @@ const AdminDashboard: React.FC = () => {
                       onChange={e => setNewBooking({ ...newBooking, duration_hours: parseInt(e.target.value) })}
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Reservation Type</label>
+                    <select
+                      className="w-full border rounded-md p-2"
+                      value={newBooking.reservation_type}
+                      onChange={e => setNewBooking({ ...newBooking, reservation_type: e.target.value as 'online' | 'walk-in' })}
+                    >
+                      <option value="walk-in">Walk-in</option>
+                      <option value="online">Online</option>
+                    </select>
+                  </div>
+                  <div className="md:col-span-1">
+                    {/* Placeholder for layout alignment if needed */}
+                  </div>
                   <div className="md:col-span-2">
                     <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 w-full md:w-auto">
                       Save Reservation
@@ -445,6 +461,12 @@ const AdminDashboard: React.FC = () => {
                             <div className="flex items-center gap-2">
                               <p className="font-bold">{formatTo12Hour(booking.start_time.slice(0, 5))} - {booking.duration_hours} hrs</p>
                               <span className="text-xs text-gray-500">({booking.booking_date})</span>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${booking.reservation_type === 'online'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-orange-100 text-orange-700'
+                                }`}>
+                                {booking.reservation_type}
+                              </span>
                             </div>
                             <p className="text-sm text-gray-600">{booking.customer_name}</p>
                             <p className="text-sm font-medium">₱{booking.total_price.toLocaleString()}</p>

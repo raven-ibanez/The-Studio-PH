@@ -93,6 +93,7 @@ export interface Booking {
   payment_status: 'unpaid' | 'paid';
   reference_number?: string;
   payment_method?: string;
+  reservation_type: 'online' | 'walk-in';
 }
 
 export interface BlockedSlot {
