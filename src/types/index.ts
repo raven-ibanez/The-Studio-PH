@@ -77,6 +77,7 @@ export interface SiteSettings {
   gcash_qr_image: string;
   opening_time: string;
   closing_time: string;
+  messenger_id: string;
 }
 
 export interface Booking {

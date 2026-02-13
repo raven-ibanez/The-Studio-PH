@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { SiteSettings, SiteSetting } from '../types';
+import { SiteSettings } from '../types';
 
 export const useSiteSettings = () => {
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
@@ -28,7 +28,8 @@ export const useSiteSettings = () => {
         currency_code: data.find(s => s.id === 'currency_code')?.value || 'PHP',
         gcash_qr_image: data.find(s => s.id === 'gcash_qr_image')?.value || '',
         opening_time: data.find(s => s.id === 'opening_time')?.value || '09:00',
-        closing_time: data.find(s => s.id === 'closing_time')?.value || '21:00'
+        closing_time: data.find(s => s.id === 'closing_time')?.value || '21:00',
+        messenger_id: data.find(s => s.id === 'messenger_id')?.value || ''
       };
 
       setSiteSettings(settings);

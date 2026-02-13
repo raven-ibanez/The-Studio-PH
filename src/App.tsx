@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Header from './components/Header';
 import AdminDashboard from './components/AdminDashboard';
@@ -6,8 +6,10 @@ import BookingCalendar from './components/BookingCalendar';
 import BookingForm from './components/BookingForm';
 import { MessageCircle } from 'lucide-react';
 import { formatTo12Hour } from './utils/time';
+import { useSiteSettings } from './hooks/useSiteSettings';
 
 function BookingPage() {
+  const { siteSettings } = useSiteSettings();
   const [step, setStep] = useState<'calendar' | 'details'>('calendar');
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [bookingTime, setBookingTime] = useState<{ start: string; duration: number }>({ start: '09:00', duration: 2 });
@@ -59,7 +61,8 @@ Reference No: ${data.referenceNumber || 'N/A'}
     // Note: The ?text= parameter is not consistently supported across all devices/platforms for m.me links,
     // but we include it as a best-effort attempt. The clipboard copy serves as a reliable fallback.
     const encodedMessage = encodeURIComponent(message);
-    window.open(`https://m.me/WebNegosyoOfficial?text=${encodedMessage}`, '_blank');
+    const messengerId = siteSettings?.messenger_id || 'WebNegosyoOfficial';
+    window.open(`https://m.me/${messengerId}?text=${encodedMessage}`, '_blank');
 
     // Reset or reload
     // window.location.reload();
@@ -118,6 +121,7 @@ Reference No: ${data.referenceNumber || 'N/A'}
 }
 
 function MainApp() {
+  const { siteSettings } = useSiteSettings();
   return (
     <div className="min-h-screen bg-cream-50 font-inter text-gray-900">
       <Header onMenuClick={() => { }} />
@@ -162,7 +166,7 @@ function MainApp() {
 
       <div className="fixed bottom-6 right-6 z-50">
         <a
-          href="https://m.me/yourpage"
+          href={`https://m.me/${siteSettings?.messenger_id || 'WebNegosyoOfficial'}`}
           target="_blank"
           rel="noopener noreferrer"
           className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center gap-2"

@@ -16,7 +16,8 @@ const SettingsTab = () => {
     gcash_qr_image: '',
     site_name: '',
     opening_time: '09:00',
-    closing_time: '21:00'
+    closing_time: '21:00',
+    messenger_id: ''
   });
 
   useEffect(() => {
@@ -26,7 +27,8 @@ const SettingsTab = () => {
         gcash_qr_image: siteSettings.gcash_qr_image || '',
         site_name: siteSettings.site_name || '',
         opening_time: siteSettings.opening_time || '09:00',
-        closing_time: siteSettings.closing_time || '21:00'
+        closing_time: siteSettings.closing_time || '21:00',
+        messenger_id: siteSettings.messenger_id || ''
       });
     }
   }, [siteSettings]);
@@ -138,6 +140,21 @@ const SettingsTab = () => {
                 return <option key={t} value={t}>{formatTo12Hour(t)}</option>;
               })}
             </select>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Messenger Settings</h3>
+          <div className="mb-6 border-b pb-6">
+            <label className="block text-sm font-medium mb-1">Messenger Page ID</label>
+            <input
+              type="text"
+              className="w-full border rounded-md p-2"
+              placeholder="e.g., 61587699944343"
+              value={formData.messenger_id}
+              onChange={(e) => setFormData({ ...formData, messenger_id: e.target.value })}
+            />
+            <p className="text-xs text-gray-500 mt-1">Your Facebook Page ID or username for Messenger links (m.me/your-id)</p>
           </div>
         </div>
 

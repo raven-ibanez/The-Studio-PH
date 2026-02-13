@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { CartItem, PaymentMethod, ServiceType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
+import { useSiteSettings } from '../hooks/useSiteSettings';
 
 interface CheckoutProps {
   cartItems: CartItem[];
@@ -11,6 +12,7 @@ interface CheckoutProps {
 
 const Checkout: React.FC<CheckoutProps> = ({ cartItems, totalPrice, onBack }) => {
   const { paymentMethods } = usePaymentMethods();
+  const { siteSettings } = useSiteSettings();
   const [step, setStep] = useState<'details' | 'payment'>('details');
   const [customerName, setCustomerName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
@@ -99,7 +101,8 @@ Please confirm this order to proceed. Thank you for choosing The Studio PH! 🥟
     `.trim();
 
     const encodedMessage = encodeURIComponent(orderDetails);
-    const messengerUrl = `https://m.me/61587699944343?text=${encodedMessage}`;
+    const messengerId = siteSettings?.messenger_id || '61587699944343';
+    const messengerUrl = `https://m.me/${messengerId}?text=${encodedMessage}`;
 
     window.open(messengerUrl, '_blank');
 
