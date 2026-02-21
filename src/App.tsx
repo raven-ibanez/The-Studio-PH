@@ -61,7 +61,7 @@ Reference No: ${data.referenceNumber || 'N/A'}
     // Note: The ?text= parameter is not consistently supported across all devices/platforms for m.me links,
     // but we include it as a best-effort attempt. The clipboard copy serves as a reliable fallback.
     const encodedMessage = encodeURIComponent(message);
-    const messengerId = siteSettings?.messenger_id || 'WebNegosyoOfficial';
+    const messengerId = siteSettings?.messenger_id || 'thestudiophofficial';
     window.open(`https://m.me/${messengerId}?text=${encodedMessage}`, '_blank');
 
     // Reset or reload
@@ -166,7 +166,7 @@ function MainApp() {
 
       <div className="fixed bottom-6 right-6 z-50">
         <a
-          href={`https://m.me/${siteSettings?.messenger_id || 'WebNegosyoOfficial'}`}
+          href={`https://m.me/${siteSettings?.messenger_id || 'thestudiophofficial'}`}
           target="_blank"
           rel="noopener noreferrer"
           className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors flex items-center gap-2"

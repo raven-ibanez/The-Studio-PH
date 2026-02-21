@@ -101,7 +101,7 @@ Please confirm this order to proceed. Thank you for choosing The Studio PH! 🥟
     `.trim();
 
     const encodedMessage = encodeURIComponent(orderDetails);
-    const messengerId = siteSettings?.messenger_id || '61587699944343';
+    const messengerId = siteSettings?.messenger_id || 'thestudiophofficial';
     const messengerUrl = `https://m.me/${messengerId}?text=${encodedMessage}`;
 
     window.open(messengerUrl, '_blank');
