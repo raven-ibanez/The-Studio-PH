@@ -102,7 +102,7 @@ Please confirm this order to proceed. Thank you for choosing The Studio PH! 🥟
 
     const encodedMessage = encodeURIComponent(orderDetails);
     const messengerId = siteSettings?.messenger_id || '61587699944343';
-    const messengerUrl = `https://m.me/61587699944343{messengerId}?text=${encodedMessage}`;
+    const messengerUrl = `https://m.me/${messengerId}?text=${encodedMessage}`;
 
     window.open(messengerUrl, '_blank');
 
