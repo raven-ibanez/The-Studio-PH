@@ -154,9 +154,11 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
                   onChange={(e) => setDuration(Number(e.target.value))}
                   className="w-full border-gray-300 rounded-md shadow-sm p-2 bg-white border"
                 >
-                  {[2, 3, 4, 5, 6, 7, 8].map(hrs => (
-                    <option key={hrs} value={hrs}>{hrs} Hours</option>
-                  ))}
+                  {[...Array(9)].map((_, i) => {
+                    const hrs = i + minDuration;
+                    if (hrs > 12) return null; // cap at 12 hours
+                    return <option key={hrs} value={hrs}>{hrs} Hours</option>;
+                  })}
                 </select>
               </div>
             </div>

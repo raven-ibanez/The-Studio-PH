@@ -56,7 +56,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
             <div className="mb-6 bg-red-50 border border-red-100 p-4 rounded-md">
                 <p className="text-red-800 text-sm font-medium">
-                    Note: Half Downpayment or full payment required for reservation. Non-refundable.
+                    Note: {siteSettings?.payment_policy || 'Half Downpayment or full payment required for reservation. Non-refundable.'}
                 </p>
             </div>
 

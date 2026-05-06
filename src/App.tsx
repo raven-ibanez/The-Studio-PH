@@ -84,7 +84,7 @@ Reference No: ${data.referenceNumber || 'N/A'}
             selectedDate={selectedDate}
             onDateSelect={handleDateSelect}
             onTimeSelect={handleTimeSelect}
-            minDuration={2}
+            minDuration={parseInt(siteSettings?.pricing_min_hours || '2')}
           />
 
           <div className="flex justify-end mt-8">
@@ -110,7 +110,7 @@ Reference No: ${data.referenceNumber || 'N/A'}
               selectedDate={selectedDate!}
               startTime={bookingTime.start}
               duration={bookingTime.duration}
-              pricePerHour={1000}
+              pricePerHour={parseInt(siteSettings?.pricing_rate_per_hour || '1000')}
               onSubmit={handleBookingSubmit}
             />
           </div>

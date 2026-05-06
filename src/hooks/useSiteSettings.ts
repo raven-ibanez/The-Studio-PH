@@ -29,7 +29,10 @@ export const useSiteSettings = () => {
         gcash_qr_image: data.find(s => s.id === 'gcash_qr_image')?.value || '',
         opening_time: data.find(s => s.id === 'opening_time')?.value || '09:00',
         closing_time: data.find(s => s.id === 'closing_time')?.value || '21:00',
-        messenger_id: data.find(s => s.id === 'messenger_id')?.value || ''
+        messenger_id: data.find(s => s.id === 'messenger_id')?.value || '',
+        payment_policy: data.find(s => s.id === 'payment_policy')?.value || 'Half Downpayment or full for reservation and non refundable',
+        pricing_min_hours: data.find(s => s.id === 'pricing_min_hours')?.value || '2',
+        pricing_rate_per_hour: data.find(s => s.id === 'pricing_rate_per_hour')?.value || '1000'
       };
 
       setSiteSettings(settings);
@@ -47,8 +50,7 @@ export const useSiteSettings = () => {
 
       const { error } = await supabase
         .from('site_settings')
-        .update({ value })
-        .eq('id', id);
+        .upsert({ id, value });
 
       if (error) throw error;
 
@@ -68,8 +70,7 @@ export const useSiteSettings = () => {
       const updatePromises = Object.entries(updates).map(([key, value]) =>
         supabase
           .from('site_settings')
-          .update({ value })
-          .eq('id', key)
+          .upsert({ id: key, value })
       );
 
       const results = await Promise.all(updatePromises);

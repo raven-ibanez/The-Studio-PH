@@ -78,6 +78,9 @@ export interface SiteSettings {
   opening_time: string;
   closing_time: string;
   messenger_id: string;
+  payment_policy: string;
+  pricing_min_hours: string;
+  pricing_rate_per_hour: string;
 }
 
 export interface Booking {

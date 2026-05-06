@@ -17,7 +17,10 @@ const SettingsTab = () => {
     site_name: '',
     opening_time: '09:00',
     closing_time: '21:00',
-    messenger_id: ''
+    messenger_id: '',
+    payment_policy: '',
+    pricing_min_hours: '',
+    pricing_rate_per_hour: ''
   });
 
   useEffect(() => {
@@ -28,7 +31,10 @@ const SettingsTab = () => {
         site_name: siteSettings.site_name || '',
         opening_time: siteSettings.opening_time || '09:00',
         closing_time: siteSettings.closing_time || '21:00',
-        messenger_id: siteSettings.messenger_id || ''
+        messenger_id: siteSettings.messenger_id || '',
+        payment_policy: siteSettings.payment_policy || '',
+        pricing_min_hours: siteSettings.pricing_min_hours || '2',
+        pricing_rate_per_hour: siteSettings.pricing_rate_per_hour || '1000'
       });
     }
   }, [siteSettings]);
@@ -103,17 +109,28 @@ const SettingsTab = () => {
           <label className="block text-sm font-medium mb-1">Payment Policy Text</label>
           <textarea
             className="w-full border rounded-md p-2 h-24"
-            defaultValue="Half Downpayment or full for reservation and non refundable"
+            value={formData.payment_policy}
+            onChange={(e) => setFormData({ ...formData, payment_policy: e.target.value })}
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Hourly Rate (₱)</label>
-            <input type="number" className="w-full border rounded-md p-2" defaultValue="1000" />
+            <input
+              type="number"
+              className="w-full border rounded-md p-2"
+              value={formData.pricing_rate_per_hour}
+              onChange={(e) => setFormData({ ...formData, pricing_rate_per_hour: e.target.value })}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Min Hours</label>
-            <input type="number" className="w-full border rounded-md p-2" defaultValue="2" />
+            <input
+              type="number"
+              className="w-full border rounded-md p-2"
+              value={formData.pricing_min_hours}
+              onChange={(e) => setFormData({ ...formData, pricing_min_hours: e.target.value })}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Opening Time</label>
